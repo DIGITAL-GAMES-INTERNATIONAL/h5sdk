@@ -17,15 +17,27 @@ window.H5SDK = (function() {
 
       if (window.ReactNativeWebView) {
         window.ReactNativeWebView.postMessage(stringData);
-
       }
 
       if (window.postMessage) {
         window.postMessage(stringData, window.origin);
+
+        if (document.referrer) {
+          const origin = (new URL(document.referrer)).origin;
+
+          if (origin &&
+            (
+              /^http[s]?:\/\/(.+\.)?storms\.com(:\d{2,6})?[/]?$/gi.test(origin) ||
+              /^http[s]?:\/\/localhost(:\d{2,6})?[/]?$/gi.test(origin)
+            )
+          ) {
+            window.parent.postMessage(stringData, origin);
+          }
+        }
       }
 
     } catch (err) {
-     console.error('H5SDK._send Error: ', err);
+      console.error('H5SDK._send Error: ', err);
     }
   }
 
@@ -41,7 +53,7 @@ window.H5SDK = (function() {
 
   H5SDK.prototype.submit = function (extraData) {
     if(extraData.hasOwnProperty('SCORE')) {
-       extraData.SCORE = parseInt(extraData.SCORE);
+      extraData.SCORE = parseInt(extraData.SCORE);
     }
     _send({ eventName: EVENT_TYPES.SUBMIT }, extraData);
   }
